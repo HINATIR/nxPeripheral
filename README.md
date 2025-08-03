@@ -6,3 +6,5 @@ https://github.com/mizuyoukanao/btstack
 3. nxPeripheral.pyを起動する
 4. 0を入力してエンター
 5. エンター
+> [!CAUTION]
+> 俺の環境だと接続はできたけど継続して動作しませんでした。
