@@ -21,10 +21,58 @@ title = """
                             |_|                             
 """
 
+# 色の定義
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GRAY = (150, 150, 150)
+DARK_GRAY = (50, 50, 50)
+RED_A = (255, 0, 0)
+BLUE_B = (0, 0, 255)
+YELLOW_Y = (255, 255, 0)
+GREEN_X = (0, 255, 0)
+BLACK_BUTTON = (30, 30, 30)
+LIGHT_RED = (255, 182, 193) # 薄い赤色 (ピンク)
+
 BUTTON_NAMES = [
     "A", "B", "X", "Y", "L", "R", "ZL", "ZR", "PLUS", "MINUS", 
     "LCLICK", "RCLICK", "UP", "DOWN", "RIGHT", "LEFT", "HOME", "CAPTURE"
 ]
+
+# ジョイスティックの半径とスティックの半径
+joystick_radius = 50
+stick_radius = 20
+
+# スティックUIの位置
+wasd_joystick_center = (750,435)
+mouse_joystick_center = (1060,540)
+
+# (posx, posy, radius,should render text)
+Buttons_Mapping = {
+  "A": (1220,435,30,False),
+  "B": (1160,485,30,False),
+  "X": (1160,385,30,False),
+  "Y": (1100,435,30,False),
+  "L": (660,335,30,True),
+  "R": (1255,335,30,True),
+  "ZL": (840,290,30,True),
+  "ZR": (1075,290,30,True),
+  "PLUS": (1055,375,15,False),
+  "MINUS": (865,375,15,False),
+  "LCLICK": (750,435,15,False),
+  "RCLICK": (1060,540,15,False),
+  "UP": (840,505,15,False),
+  "DOWN": (840,575,15,False),
+  "RIGHT": (805,540,15,False),
+  "LEFT": (880,540,15,False),
+  "HOME": (1015,435,15,False),
+  "CAPTURE": (905,435,15,False)
+}
+
+# 右ジョイスティック（マウス）の中心
+mouse_dot_x = float(mouse_joystick_center[0])
+mouse_dot_y = float(mouse_joystick_center[1])
+axis = (0,0)
+old_axis = (0,0)
 
 # グローバル変数の初期化
 pressed_keys = set()
@@ -32,17 +80,11 @@ old_pressed_keys = set()
 prisets = set()
 
 
-old_mousepos = (0,0)
-mousepos = (0,0)
-MOUSE_MOVE_CONSTANT = 100.0
-
+#マウスの値
 rightClick = 0
 leftClick = 0
-
 mouse_scroll = 0
 
-
-stop_flag = False
 
 if not os.path.exists("keyconfig"):
     os.makedirs(f"keyconfig")
@@ -80,10 +122,6 @@ def on_release(key):
         if str(key) in pressed_keys:
             pressed_keys.remove(str(key))
 
-# マウス移動
-def on_move(x, y):
-    global mousepos
-    mousepos = (x, y)
 
 # マウス移動の正規化
 def mouse_normalisation(d):
@@ -115,7 +153,7 @@ def on_scroll(x, y, dx, dy):
 # ---
 # リスナー設定と開始
 keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
-mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll)
+mouse_listener = mouse.Listener(on_click=on_click, on_scroll=on_scroll)
 
 keyboard_listener.start()
 mouse_listener.start()
@@ -168,48 +206,6 @@ def printPreset(path):
     for filepath, key in temp.items():
         print(f"キー設定: {filepath}, 切り替えキー: {key}")
 
-# 色の定義
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GRAY = (150, 150, 150)
-DARK_GRAY = (50, 50, 50)
-RED_A = (255, 0, 0)
-BLUE_B = (0, 0, 255)
-YELLOW_Y = (255, 255, 0)
-GREEN_X = (0, 255, 0)
-BLACK_BUTTON = (30, 30, 30)
-LIGHT_RED = (255, 182, 193) # 薄い赤色 (ピンク)
-
-# ジョイスティックの半径とスティックの半径
-joystick_radius = 50
-stick_radius = 20
-
-wasd_joystick_center = (750,435)
-mouse_joystick_center = (1060,540)
-
-
-# (posx, posy, radius,should render text)
-Buttons_Mapping = {
-  "A": (1220,435,30,False),
-  "B": (1160,485,30,False),
-  "X": (1160,385,30,False),
-  "Y": (1100,435,30,False),
-  "L": (660,335,30,True),
-  "R": (1255,335,30,True),
-  "ZL": (840,290,30,True),
-  "ZR": (1075,290,30,True),
-  "PLUS": (1055,375,15,False),
-  "MINUS": (865,375,15,False),
-  "LCLICK": (750,435,15,False),
-  "RCLICK": (1060,540,15,False),
-  "UP": (840,505,15,False),
-  "DOWN": (840,575,15,False),
-  "RIGHT": (805,540,15,False),
-  "LEFT": (880,540,15,False),
-  "HOME": (1015,435,15,False),
-  "CAPTURE": (905,435,15,False)
-}
-
 print(title)
 print("")
 
@@ -219,7 +215,6 @@ for n, fn in enumerate(preset_json_files):
 
 print()
 load_file = preset_json_files[int(input("利用するプリセットの番号を入力して接続> "))]
-
 
 presets = openPreset(load_file)
 
@@ -231,14 +226,22 @@ key_mappings = openKeyConfig(next(iter(presets)))
 printKeyConfig(next(iter(presets)))
 
 print()
-input("なにかキーを押すとSwitchにBluetooth接続を開始します")
+dev_command = input("なにかキーを押すとSwitchにBluetooth接続を開始します")
 
-# コントローラとして接続
-btkeyLib.start(0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF)
-while not btkeyLib.is_paired():
-    time.sleep(1)
 
-print("接続が成功しました！\n")
+isDemo_connection = False
+if(dev_command == "demo"):
+    isDemo_connection = True
+
+# 実際には接続しないデモモード、キー入力の確認など
+if(not isDemo_connection):
+    # コントローラとして接続
+    btkeyLib.start(0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF)
+    while not btkeyLib.is_paired():
+        time.sleep(1)
+    print("接続が成功しました！\n")
+else:
+    print("実際にSwitchには接続しないデモモードです。\n")
 
 # Pygameの初期化
 pygame.init()
@@ -252,9 +255,6 @@ screen_height = info.current_h
 screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 pygame.display.set_caption("Switch Pro Controller UI (Image Background)")
 
-# フォントの設定
-font_large = pygame.font.Font(None, 36)
-font_small = pygame.font.Font(None, 24)
 
 # 画像の読み込みと準備
 try:
@@ -280,6 +280,7 @@ pygame.mouse.set_visible(False)
 pygame.event.set_grab(True)
 
 
+
 def limit_dot_position(center_pos, dot_pos_x, dot_pos_y, radius):
     """点が円の内部に留まるように座標を制限するヘルパー関数"""
     distance = math.sqrt((dot_pos_x - center_pos[0])**2 + (dot_pos_y - center_pos[1])**2)
@@ -294,19 +295,21 @@ def draw_button(button_name,is_pressed):
     global Buttons_Mapping
     prope = Buttons_Mapping.get(button_name)
     pos = (prope[0],prope[1])
-    radius = Buttons_Mapping.get(button_name)[2]
+    radius = prope[2]
     color = LIGHT_RED if is_pressed else GRAY # デフォルトのボタンの色を薄い赤に
     if is_pressed:
         pygame.draw.circle(screen, LIGHT_RED, pos, radius)
-        pygame.draw.circle(screen, DARK_GRAY, pos, radius, 2)
+        pygame.draw.circle(screen, WHITE, pos, radius, 2)
     else:
         pygame.draw.circle(screen, color, pos, radius)
-        pygame.draw.circle(screen, DARK_GRAY, pos, radius, 2)
+        pygame.draw.circle(screen, WHITE, pos, radius, 2)
 
-    font = pygame.font.Font(None, int(prope[2]/ 3))    
+    font = pygame.font.Font(None, int(prope[2] * 2))    
     text = font.render(button_name, True, (0, 0, 0))
+    font_rect = text.get_rect()
+    font_rect.center = pos
     if prope[3]:
-        screen.blit(text, [20, 100])
+        screen.blit(text, font_rect)
 
 def calculate_constrained_point(center_x, center_y, delta_x, delta_y, radius):
     # 新しい点の仮の座標を計算
@@ -343,26 +346,6 @@ def drawJoystick(isLjoy,x_axis, y_axis):
     pygame.draw.circle(screen, RED_A, dot, stick_radius)
     
 
-# 右ジョイスティック（マウス）の中心
-mouse_dot_x = float(mouse_joystick_center[0])
-mouse_dot_y = float(mouse_joystick_center[1])
-
-def limit_dot_position(center_pos, dot_pos_x, dot_pos_y, radius):
-    """点が円の内部に留まるように座標を制限するヘルパー関数"""
-    distance = math.sqrt((dot_pos_x - center_pos[0])**2 + (dot_pos_y - center_pos[1])**2)
-    if distance > radius:
-        dir_x = (dot_pos_x - center_pos[0]) / distance
-        dir_y = (dot_pos_y - center_pos[1]) / distance
-        dot_pos_x = center_pos[0] + dir_x * radius
-        dot_pos_y = center_pos[1] + dir_y * radius
-    return dot_pos_x, dot_pos_y
-
-
-mouse_dot_x = float(mouse_joystick_center[0])
-mouse_dot_y = float(mouse_joystick_center[1])
-axis = (0,0)
-old_axis = (0,0)
-
 def limit_dot_position(center_pos, dot_pos_x, dot_pos_y, radius):
     """点が円の内部に留まるように座標を制限するヘルパー関数"""
     distance = math.sqrt((dot_pos_x - center_pos[0])**2 + (dot_pos_y - center_pos[1])**2)
@@ -375,8 +358,6 @@ def limit_dot_position(center_pos, dot_pos_x, dot_pos_y, radius):
 
 def nxInput():
     global old_pressed_keys
-    global old_mousepos
-    global mousepos
     global mouse_scroll
     global pressed_keys
     global key_mappings
@@ -494,8 +475,6 @@ def nxInput():
 
 def nxRender():
     global old_pressed_keys
-    global old_mousepos
-    global mousepos
     global mouse_scroll
     global pressed_keys
     global key_mappings
@@ -556,8 +535,6 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            running = False
         
         if event.type == pygame.MOUSEMOTION:
             rel_x, rel_y = event.rel
