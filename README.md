@@ -5,6 +5,7 @@
 # 必要なもの
 
 * Bluetooth USBアダプター (CSR4.0チップセット推奨)
+ELECOM LBT-UAN05C2/N もしくは、ICがUB400であるTPlink-UB400のv1を推奨
 * Python 3.x
 * pygame,pynput
 
@@ -45,3 +46,4 @@ https://github.com/mizuyoukanao/btstack
 > [!CAUTION]
 
 > 安物のゴミみたいなアダプタ使ったら、接続はできたけどすぐ入力キレました。
+
