@@ -38,6 +38,7 @@ BUTTON_NAMES = [
     "LCLICK", "RCLICK", "UP", "DOWN", "RIGHT", "LEFT", "HOME", "CAPTURE"
 ]
 
+
 # ジョイスティックの半径とスティックの半径
 joystick_radius = 50
 stick_radius = 20
@@ -48,29 +49,27 @@ mouse_joystick_center = (1060,540)
 
 # (posx, posy, radius,should render text)
 Buttons_Mapping = {
-  "A": (1220,435,30,False),
-  "B": (1160,485,30,False),
-  "X": (1160,385,30,False),
-  "Y": (1100,435,30,False),
-  "L": (660,335,30,True),
-  "R": (1255,335,30,True),
-  "ZL": (840,290,30,True),
-  "ZR": (1075,290,30,True),
-  "PLUS": (1055,375,15,False),
-  "MINUS": (865,375,15,False),
-  "LCLICK": (750,435,15,False),
-  "RCLICK": (1060,540,15,False),
-  "UP": (840,505,15,False),
-  "DOWN": (840,575,15,False),
-  "RIGHT": (805,540,15,False),
-  "LEFT": (880,540,15,False),
-  "HOME": (1015,435,15,False),
-  "CAPTURE": (905,435,15,False)
+  "A": ((1220,435),30,False),
+  "B": ((1160,485),30,False),
+  "X": ((1160,385),30,False),
+  "Y": ((1100,435),30,False),
+  "L": ((660,335),30,True),
+  "R": ((1255,335),30,True),
+  "ZL": ((840,290),30,True),
+  "ZR": ((1075,290),30,True),
+  "PLUS": ((1055,375),15,False),
+  "MINUS": ((865,375),15,False),
+  "LCLICK": ((750,435),15,False),
+  "RCLICK": ((1060,540),15,False),
+  "UP": ((840,505),15,False),
+  "DOWN": ((840,575),15,False),
+  "RIGHT": ((805,540),15,False),
+  "LEFT": ((880,540),15,False),
+  "HOME": ((1015,435),15,False),
+  "CAPTURE": ((905,435),15,False)
 }
 
-# 右ジョイスティック（マウス）の中心
-mouse_dot_x = float(mouse_joystick_center[0])
-mouse_dot_y = float(mouse_joystick_center[1])
+# 右ジョイスティック
 axis = (0,0)
 old_axis = (0,0)
 
@@ -93,6 +92,12 @@ if not os.path.exists("presets"):
     os.makedirs(f"presets")
 
 # キーが押されたときの処理
+
+# (もともとの座標,移動先の座標,スケール)
+def scaler(pos,to,scale):
+    FHDcenter = (1920/2, 1080/2)
+    temp = (FHDcenter[0] - pos[0],FHDcenter[1] - pos[1] )
+    return (to[0] - int(scale * temp[0]), to[1] - int(scale * temp[1]))
 
 def on_press(key):
     global pressed_keys
@@ -246,40 +251,39 @@ else:
 # Pygameの初期化
 pygame.init()
 
+# Windowの大きさ
+scale = 0.7
+
+image = pygame.image.load("procon.jpg")
+size = (int(image.get_width()* scale), int(image.get_height() * scale))
+image = pygame.transform.scale(image, size)
+    
+# 取得したサイズでウィンドウを作成
+screen = pygame.display.set_mode(size)
+
+
 # 画面の幅と高さを取得
 info = pygame.display.Info()
 screen_width = info.current_w
 screen_height = info.current_h
 
-# ウィンドウをフルスクリーンモードで作成
-screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
-pygame.display.set_caption("Switch Pro Controller UI (Image Background)")
-
-
-# 画像の読み込みと準備
-try:
-    image_path = 'procon.jpg'
-    background_image = pygame.image.load(image_path).convert_alpha()
-    
-    # 画像のサイズを画面幅の約70%に調整
-    scale = 0.4
-    image_width = int(screen_width * scale)
-    image_height = int(background_image.get_height() * (image_width / background_image.get_width()))
-    background_image = pygame.transform.scale(background_image, (image_width, image_height))
-    
-    # 画像を画面中央に配置するためのRectを取得
-    image_rect = background_image.get_rect()
-    image_rect.center = (screen_width // 2, screen_height // 2)
-except pygame.error as e:
-    print(f"画像 '{image_path}' の読み込みに失敗しました: {e}")
-    background_image = None
-    
+# ウィンドウのタイトルを設定
+pygame.display.set_caption("nxPeripheral")
 
 # マウスカーソルを非表示にし、ウィンドウ内に固定
 pygame.mouse.set_visible(False)
 pygame.event.set_grab(True)
 
-
+# 変数を修正
+size = (size[0]/2,size[0]/2 )
+scale = scale * 1.2
+wasd_joystick_center = pos = scaler( wasd_joystick_center,size,scale)
+mouse_joystick_center = pos = scaler( mouse_joystick_center,size,scale)
+stick_radius = int(stick_radius * scale)
+joystick_radius = int(joystick_radius * scale)
+# 右ジョイスティック（マウス）の中心
+mouse_dot_x = float(mouse_joystick_center[0])
+mouse_dot_y = float(mouse_joystick_center[1])
 
 def limit_dot_position(center_pos, dot_pos_x, dot_pos_y, radius):
     """点が円の内部に留まるように座標を制限するヘルパー関数"""
@@ -294,8 +298,12 @@ def limit_dot_position(center_pos, dot_pos_x, dot_pos_y, radius):
 def draw_button(button_name,is_pressed):
     global Buttons_Mapping
     prope = Buttons_Mapping.get(button_name)
-    pos = (prope[0],prope[1])
-    radius = prope[2]
+
+    global size
+    global scale
+    pos = scaler( prope[0],size,scale)
+
+    radius = prope[1] * scale
     color = LIGHT_RED if is_pressed else GRAY # デフォルトのボタンの色を薄い赤に
     if is_pressed:
         pygame.draw.circle(screen, LIGHT_RED, pos, radius)
@@ -304,11 +312,11 @@ def draw_button(button_name,is_pressed):
         pygame.draw.circle(screen, color, pos, radius)
         pygame.draw.circle(screen, WHITE, pos, radius, 2)
 
-    font = pygame.font.Font(None, int(prope[2] * 2))    
+    font = pygame.font.Font(None, int(radius * 2))    
     text = font.render(button_name, True, (0, 0, 0))
     font_rect = text.get_rect()
     font_rect.center = pos
-    if prope[3]:
+    if prope[2]:
         screen.blit(text, font_rect)
 
 def calculate_constrained_point(center_x, center_y, delta_x, delta_y, radius):
@@ -340,8 +348,8 @@ def drawJoystick(isLjoy,x_axis, y_axis):
     pos = mouse_joystick_center
     if isLjoy:
         pos = wasd_joystick_center
-    
-    pygame.draw.circle(screen, WHITE, pos, joystick_radius, 5)
+
+    pygame.draw.circle(screen, WHITE, pos, joystick_radius, 2)
     dot = calculate_constrained_point(pos[0],pos[1],joystick_radius* x_axis,joystick_radius*y_axis* -1,joystick_radius)
     pygame.draw.circle(screen, RED_A, dot, stick_radius)
     
@@ -468,10 +476,7 @@ def nxInput():
     # 現在フレームで押されているキーを保存
     old_pressed_keys = pressed_keys.copy()
 
-
-# 画像を最下層に描画
-    if background_image:
-        screen.blit(background_image, image_rect)
+    screen.blit(image, (0, 0))
 
 def nxRender():
     global old_pressed_keys
