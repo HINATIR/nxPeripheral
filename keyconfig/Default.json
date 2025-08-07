@@ -1,0 +1,20 @@
+{
+  "A": "Key.space",
+  "B": "q",
+  "X": "e",
+  "Y": "c",
+  "L": "Mouse.Scroll.down",
+  "R": "Mouse.Scroll.up",
+  "ZL": "Mouse.Button.right",
+  "ZR": "Mouse.Button.left",
+  "PLUS": "Key.esc",
+  "MINUS": "Key.tab",
+  "LCLICK": "r",
+  "RCLICK": "Key.shift",
+  "UP": "Key.up",
+  "DOWN": "Key.down",
+  "RIGHT": "Key.right",
+  "LEFT": "Key.left",
+  "HOME": "Key.enter",
+  "CAPTURE": "p"
+}

@@ -41,8 +41,8 @@ class Direction(IntEnum):
     LEFT = 0
     RIGHT = 0xFFF
     NEUTRAL = 0x800
-    HULF_RIGHT = 0x800 + 0x333 # ±40%
-    HULF_LEFT = 0x800 - 0x333
+    HULF_RIGHT = 0x800 + int(2048 * 0.45) # ±40%
+    HULF_LEFT = 0x800 - int(2048 * 0.45)
 
 # threadingでdllを呼び出すための関数
 def s():
